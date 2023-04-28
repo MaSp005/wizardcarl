@@ -15,13 +15,10 @@ module.exports = class Spell {
   }
 
   chooseResponse() {
-    console.log(this);
     let weights = [this.responses[0].weight || 1];
     for (let i = 1; i < this.responses.length; i++)
       weights[i] = (this.responses[i].weight || 1) + weights[i - 1];
-    console.log(weights);
     let random = Math.random() * weights[weights.length - 1];
-    console.log(random);
     let i;
     for (i = 0; i < weights.length; i++)
       if (weights[i] > random)

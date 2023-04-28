@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Apprentice Carl</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #12130f;
+      color: rgb(173, 173, 173);
+      font-family: Helvetica, Arial, sans-serif;
+      letter-spacing: .2px;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    table td,
+    table th {
+      border: 1px solid #6f726f;
+      padding: 10px;
+    }
+
+    table td:nth-child(2) div {
+      padding: 5px;
+    }
+    table td weight {
+      float: right;
+      display: block;
+      margin-left: 5px;
+    }
+    table td weight {
+    float: right;
+    display: block;
+    margin-left: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Ember's Gamer Den</h2>
+  <h1>Apprentice Carl Bot</h1>
+  <p><%= spells.length %> spells.</p>
+  <table>
+    <tr>
+      <th>Spell (Trigger)</th>
+      <th>Responses</td>
+      <th>Actions</th>
+    </tr>
+    <% spells.forEach((s, i) => { %>
+    <tr data-id="<%= i %>">
+      <td><%= s.trigger.source %></td>
+      <td>
+        <% s.responses.forEach((r, i) => { %>
+        <div data-id="<%= i %>">
+          <resp><%= r.text %></resp>
+          <weight><%= r.weight || 1 %></weight>
+        </div>
+        <% }) %>
+      </td>
+      <td></td>
+    </tr>
+    <% }) %>
+  </table>
+  <script>
+
+  </script>
+</body>
+
+</html>
