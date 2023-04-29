@@ -31,8 +31,8 @@
   {
     "trigger": "i summon ketamine ape",
     "responses": [
-      "https://tenor.com/view/gorilla-spin-gorilla-gif-20269552",
       "https://cdn.discordapp.com/attachments/971126585610604655/1021979552853012500/ok_cok.png",
+      "https://tenor.com/view/gorilla-spin-gorilla-gif-20269552",
       "https://tenor.com/view/monkey-kinkytwt-stan-twitter-stan-twitter-memes-monkey-angry-gif-25266657",
       "https://tenor.com/view/gorilla-spin-dance-gif-14540709",
       "https://tenor.com/view/gorilla-slide-gif-26373889",
@@ -353,6 +353,18 @@
     "trigger": "glue spell",
     "responses": [
       "https://cdn.discordapp.com/attachments/1012925517369970728/1079209160748572682/glue.mp4"
+    ]
+  },
+  {
+    "trigger": "deconstruct boiled egg",
+    "responses": [
+      "https://cdn.discordapp.com/attachments/1012925517369970728/1035267160471244921/unknown.png"
+    ]
+  },
+  {
+    "trigger": "i conjure cream of pizza",
+    "responses": [
+      "https://cdn.discordapp.com/attachments/1012925517369970728/1078838567301820507/MhG6aaLOprz8kgga.mp4"
     ]
   }
 ]

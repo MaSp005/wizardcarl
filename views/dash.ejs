@@ -14,8 +14,19 @@
       letter-spacing: .2px;
     }
 
+    h1,
+    h2,
+    p {
+      width: 100%;
+      text-align: center;
+      margin: 0;
+      color: white;
+    }
+
     table {
       border-collapse: collapse;
+      width: 90%;
+      margin: 20px auto 0;
     }
 
     table td,
@@ -27,15 +38,23 @@
     table td:nth-child(2) div {
       padding: 5px;
     }
-    table td weight {
+
+    table td:nth-child(2) div:not(:last-child) {
+      border-bottom: 1px solid #333;
+    }
+
+    table td .weight {
       float: right;
       display: block;
-      margin-left: 5px;
+      width: 40px;
+      background: transparent;
+      border: none;
+      color: white;
     }
-    table td weight {
-    float: right;
-    display: block;
-    margin-left: 5px;
+
+    table td resp {
+      width: calc(100% - 50px);
+      display: inline-block;
     }
   </style>
 </head>
@@ -52,21 +71,96 @@
     </tr>
     <% spells.forEach((s, i) => { %>
     <tr data-id="<%= i %>">
-      <td><%= s.trigger.source %></td>
+      <td contenteditable><%= s.trigger.source %></td>
       <td>
         <% s.responses.forEach((r, i) => { %>
         <div data-id="<%= i %>">
-          <resp><%= r.text %></resp>
-          <weight><%= r.weight || 1 %></weight>
+          <resp contenteditable><%= r.text %></resp>
+          <% if (s.responses.length >= 2) { %>
+          <input type="number" class="weight" min="0" value="<%= r.weight || 1 %>">
+          <% } %>
         </div>
         <% }) %>
       </td>
-      <td></td>
+      <td>
+        <button class="del">Delete</button>
+        <button class="add">Add Response</button>
+      </td>
     </tr>
     <% }) %>
+    <tr data-id="new" class="new">
+      <td contenteditable>NEW SPELL</td>
+      <td contenteditable>NEW RESPONSE</td>
+      <td>Enter to confirm</td>
+    </tr>
   </table>
   <script>
+    function send(method, spell, response, data) {
+      fetch("/", {
+        method: "POST",
+        body: JSON.stringify({
+          method: method.toString(),
+          spell: spell.toString(),
+          response: response.toString(),
+          data: data.toString()
+        }),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }).then(() => location.reload());
+    }
 
+    // new spell, change spell/response
+    const newrow = document.querySelector(".new");
+    document.querySelectorAll("[contenteditable]").forEach(w =>
+      w.addEventListener("keydown", e => {
+        if (e.key != "Enter") return;
+        e.preventDefault();
+        if (w.closest(".new"))
+          send("create", newrow.children[0].innerText.trim(), newrow.children[1].innerText.trim());
+        else if (w.matches("td:nth-child(1)"))
+          send("spell", w.parentElement.getAttribute("data-id"), null, w.innerText.trim());
+        else if (w.matches("resp"))
+          send("response", w.closest("tr").getAttribute("data-id"), w.parentElement.getAttribute("data-id"), w.innerText.trim());
+      })
+    )
+
+    // change weight
+    document.querySelectorAll(".weight").forEach(w =>
+      w.addEventListener("change", e => {
+        send(
+          "weight",
+          w.parentElement.parentElement.parentElement.getAttribute("data-id"),
+          w.parentElement.getAttribute("data-id"),
+          w.value
+        )
+      })
+    )
+
+    // actions
+    document.querySelectorAll(".del").forEach(b =>
+      b.addEventListener("click", e => {
+        send(
+          "delete",
+          b.closest("tr").getAttribute("data-id")
+        )
+      })
+    )
+    document.querySelectorAll(".add").forEach(b =>
+      b.addEventListener("click", e => {
+        let list = b.parentElement.parentElement.children[1];
+        let el = document.createElement("div");
+        let myid = list.children.length;
+        el.setAttribute("data-id", myid);
+        el.innerHTML = `<resp contenteditable></resp><input type="number" class="weight" min="0" value="1">`;
+        el.addEventListener("keydown", e => {
+          if (e.key != "Enter") return;
+          e.preventDefault();
+          send("response", el.closest("tr").getAttribute("data-id"), myid, el.innerText.trim());
+        })
+        list.appendChild(el);
+      })
+    )
   </script>
 </body>
 
