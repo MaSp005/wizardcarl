@@ -366,5 +366,23 @@
     "responses": [
       "https://cdn.discordapp.com/attachments/1012925517369970728/1078838567301820507/MhG6aaLOprz8kgga.mp4"
     ]
+  },
+  {
+    "trigger": "I conjure the harmonica",
+    "responses": [
+      "https://youtu.be/FX0qJqsEkZQ?t=26"
+    ]
+  },
+  {
+    "trigger": "^carl calculate ",
+    "responses": [
+      "=>(()=>{try { return msg.slice(15) + ' = ' + eval(msg.slice(15).replace('^','**').replace('\\\\','')); } catch (_) { return 'I\\'m not *that* smart...' }})()"
+    ]
+  },
+  {
+    "trigger": "^carl convert ",
+    "responses": [
+      "=>(()=>{ let from = msg.slice(13); from = from.slice(0, from.search(/ to | in /i)); let to = msg.slice(13 + from.length + 4); return convertStr(from, to); })()"
+    ]
   }
 ]

@@ -1,9 +1,13 @@
 // BOT
 
 const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
+const vm = require("vm");
+const { convert } = require("convert");
 const { TOKEN, PORT, CHANNELS } = require('./config.json');
 const Spell = require("./spell");
 const spells = require("./spells.json").map(x => new Spell(x));
+
+CHANNELS.forEach(c => c = c.split(" ")[0]);
 
 const client = new Client({
   intents: [
@@ -26,13 +30,71 @@ client.on("messageCreate", msg => {
   if (!CHANNELS.includes(msg.channel.id)) return;
   let spell = findSpell(msg.content);
   if (!spell) return;
-  let response = spell.chooseResponse().replace("%userid", msg.member.user.id);
-  msg.channel.send({ content: response });
+  let response = spell.chooseResponse();
+  if (response.startsWith("=>")) {
+    response = vm.runInContext(response.slice(2), vm.createContext({ msg: msg.content, convertStr }));
+  }
+  msg.channel.send({ content: response.replace("%userid", msg.member.user.id) });
 })
 
 client.login(TOKEN);
 
-findSpell = msg => spells.find(s => s.trigger.test(msg));
+const findSpell = msg => spells.find(s => s.match(msg));
+const unitcorrections = {
+  f: "F",
+  c: "C",
+  d: "days",
+  "°": "deg",
+  sqmm: "square millimeters",
+  sqcm: "square centimeters",
+  sqdm: "square decimeters",
+  sqm: "square meters",
+  sqkm: "square kilometers",
+  sqin: "square inches",
+  sqft: "square feet",
+  sqmi: "square miles",
+  sqyd: "square yards"
+}
+const displayunits = {
+  F: " °F",
+  C: " °C",
+  "square millimeters": "mm²",
+  "square centimeters": "cm²",
+  "square decimeters": "dm²",
+  "square meters": "m²",
+  "square kilometers": "km²",
+  "square inches": "in²",
+  "square feet": "ft²",
+  "square miles": "mi²",
+  "square yards": "yd²",
+  "cubic millimeters": "mm³",
+  "cubic centimeters": "cm³",
+  "cubic decimeters": "dm³",
+  "cubic meters": "m³",
+  "cubic kilometers": "km³",
+  "cubic inches": "in³",
+  "cubic feet": "ft³",
+  "cubic miles": "mi³",
+  "cubic yards": "yd³",
+  "rad": "",
+  "deg": "°"
+};
+const convertStr = (from, to) => {
+  let index = from.search(/[^.\,\d]/i);
+  try {
+    let fromvalue = parseFloat(from.slice(0, index).replace(",", "."));
+    let fromunit = from.slice(index).toLowerCase().trim();
+    fromunit = unitcorrections[fromunit] || fromunit;
+    to = unitcorrections[to] || to;
+    try {
+      return convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
+    } catch (_) {
+      return "Don't know that one..."
+    }
+  } catch (_) {
+    return "Your Number is a bit off..."
+  }
+};
 
 
 // WEBSERVER

@@ -11,7 +11,7 @@ module.exports = class Spell {
   }
 
   match(msg) {
-    this.trigger.test(msg.replace(/[^a-z]/ig,""))
+    return this.trigger.test(msg.replace(/[^a-z ]/ig,""))
   }
 
   chooseResponse() {
