@@ -42,7 +42,7 @@ client.login(TOKEN);
 const findSpell = msg => spells.find(s => s.match(msg));
 const convertStr = (from, to) => {
   to = (unitcorrections[to] || to).trim();
-  if (/^\d+' ?\d+(''|")?$/i.test(from)) {
+  if (/^\d+' ?\d+(''|")?$/i.test(from)) { //* FOOT NOTATION
     try {
       return convertMany(from.replace("'", "ft ").replace("''", "").replace('"', "") + "in")
         .to(to) + " " + (displayunits[to] || to);
@@ -50,19 +50,42 @@ const convertStr = (from, to) => {
       return "Don't know that one...";
     }
   } else {
-    let index = from.search(/[^.\,\d]/i);
+    let index = from.search(/[^.\,\d:]/i);
+    let fromunit = from.slice(index).toLowerCase().trim();
     let fromvalue = from.slice(0, index).replace(",", ".");
+    if (fromunit.toUpperCase() in timezones && to.toUpperCase() in timezones) { //* TIMEZONES
+      let hour, minute;
+      try {
+        let split = fromvalue.split(":");
+        hour = parseInt(split[0]);
+        minute = parseInt(split[1] || "0");
+      } catch (_) {
+        return "Your Number is a bit off...";
+      }
+      let offset = timezones[to.toUpperCase()] - timezones[fromunit.toUpperCase()];
+      offset += (offset != 0) * (offset > 0 ? -1 : 1);
+      hour += offset;
+      minute += Math.floor((offset % 1) * 60);
+      hour %= 24;
+      minute %= 60;
+      if (hour < 0) hour += 24;
+      if (minute < 0) minute += 60;
+      let pm = hour > 12;
+      return `**${hour}:${minute.toString().padStart(2, "0")}** ${to.toUpperCase()} or ` +
+        `${hour % 12 || 12}:${minute.toString().padStart(2, "0")} ${pm ? "PM" : "AM"} ${to.toUpperCase()}, ` +
+        `**${Math.trunc(offset)}:${((offset % 1) * 60).toString().padStart(2, "0")}** offset.`;
+    }
     try {
+      if (isNaN(fromvalue)) throw "";
       fromvalue = parseFloat(fromvalue);
     } catch (_) {
       return "Your Number is a bit off...";
     }
-    let fromunit = from.slice(index).toLowerCase().trim();
     fromunit = unitcorrections[fromunit] || fromunit;
-    try {
+    try { //* CONVERSION
       return convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
     } catch (_) {
-      try {
+      try { //* BACKUP CONVERTMANY
         return convertMany(from).to(to) + " " + (displayunits[to] || to);
       } catch (_) {
         return "Don't know that one...";
@@ -84,7 +107,7 @@ app.get("/", (_, res) => {
 });
 app.post("/", expr.json(), (req, res) => {
   let { method, spell, response, data } = req.body;
-  console.log({ method, spell, response, data });
+  // console.log({ method, spell, response, data });
   if (typeof spell != "undefined") spell = parseInt(spell.trim());
   if (typeof response != "undefined") response = parseInt(response.trim());
   if (!method) return res.sendStatus(400);
