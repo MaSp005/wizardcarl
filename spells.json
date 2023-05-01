@@ -382,7 +382,7 @@
   {
     "trigger": "^carl convert ",
     "responses": [
-      "=>(()=>{ let from = msg.slice(13); from = from.slice(0, from.search(/ to | in /i)); let to = msg.slice(13 + from.length + 4); return convertStr(from, to); })()"
+      "=>(()=>{ let from = msg.slice(13); from = from.slice(0, from.search(/ to | in /i)); let to = msg.slice(13 + from.length + 4); return convertStr(from.trim(), to.trim()); })()"
     ]
   }
 ]

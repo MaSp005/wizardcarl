@@ -2,12 +2,11 @@
 
 const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const vm = require("vm");
-const { convert } = require("convert");
-const { TOKEN, PORT, CHANNELS } = require('./config.json');
+const { convert, convertMany } = require("convert");
+const { TOKEN, PORT } = require('./config.json');
+let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
 const spells = require("./spells.json").map(x => new Spell(x));
-
-CHANNELS.forEach(c => c = c.split(" ")[0]);
 
 const client = new Client({
   intents: [
@@ -43,6 +42,7 @@ const findSpell = msg => spells.find(s => s.match(msg));
 const unitcorrections = {
   f: "F",
   c: "C",
+  k: " kelvin",
   d: "days",
   "°": "deg",
   sqmm: "square millimeters",
@@ -58,6 +58,7 @@ const unitcorrections = {
 const displayunits = {
   F: " °F",
   C: " °C",
+  kelvin: "K",
   "square millimeters": "mm²",
   "square centimeters": "cm²",
   "square decimeters": "dm²",
@@ -76,23 +77,37 @@ const displayunits = {
   "cubic feet": "ft³",
   "cubic miles": "mi³",
   "cubic yards": "yd³",
-  "rad": "",
-  "deg": "°"
+  rad: "",
+  deg: "°"
 };
 const convertStr = (from, to) => {
-  let index = from.search(/[^.\,\d]/i);
-  try {
-    let fromvalue = parseFloat(from.slice(0, index).replace(",", "."));
-    let fromunit = from.slice(index).toLowerCase().trim();
-    fromunit = unitcorrections[fromunit] || fromunit;
-    to = unitcorrections[to] || to;
+  to = (unitcorrections[to] || to).trim();
+  if (/^\d+' ?\d+(''|")?$/i.test(from)) {
     try {
-      return convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
+      return convertMany(from.replace("'", "ft ").replace("''", "").replace('"', "") + "in")
+        .to(to) + " " + (displayunits[to] || to);
     } catch (_) {
       return "Don't know that one..."
     }
-  } catch (_) {
-    return "Your Number is a bit off..."
+  } else {
+    let index = from.search(/[^.\,\d]/i);
+    let fromvalue = from.slice(0, index).replace(",", ".");
+    try {
+      fromvalue = parseFloat(fromvalue);
+    } catch (_) {
+      return "Your Number is a bit off..."
+    }
+    let fromunit = from.slice(index).toLowerCase().trim();
+    fromunit = unitcorrections[fromunit] || fromunit;
+    try {
+      return convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
+    } catch (_) {
+      try {
+        return convertMany(from).to(to) + " " + (displayunits[to] || to);
+      } catch (_) {
+        return "Don't know that one..."
+      }
+    }
   }
 };
 
