@@ -374,13 +374,13 @@
     ]
   },
   {
-    "trigger": "^(carl calc(ulate)? |carl (do )?math |carl eval(uate)? )",
+    "trigger": "^carl calculate ",
     "responses": [
       "=>(()=>{try { return msg.slice(15) + ' = ' + eval(msg.slice(15).replace('^','**').replace('\\\\','')); } catch (_) { return 'I\\'m not *that* smart...' }})()"
     ]
   },
   {
-    "trigger": "^carl conv(ert)? ",
+    "trigger": "^carl convert ",
     "responses": [
       "=>(()=>{ let from = msg.slice(13); from = from.slice(0, from.search(/ to | in /i)); let to = msg.slice(13 + from.length + 4); return convertStr(from.trim(), to.trim()); })()"
     ]
