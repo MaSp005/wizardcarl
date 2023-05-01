@@ -4,6 +4,7 @@ const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js'
 const vm = require("vm");
 const { convert, convertMany } = require("convert");
 const { TOKEN, PORT } = require('./config.json');
+const { unitcorrections, displayunits, timezones } = require("./constants.json");
 let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
 const spells = require("./spells.json").map(x => new Spell(x));
@@ -39,47 +40,6 @@ client.on("messageCreate", msg => {
 client.login(TOKEN);
 
 const findSpell = msg => spells.find(s => s.match(msg));
-const unitcorrections = {
-  f: "F",
-  c: "C",
-  k: " kelvin",
-  d: "days",
-  "°": "deg",
-  sqmm: "square millimeters",
-  sqcm: "square centimeters",
-  sqdm: "square decimeters",
-  sqm: "square meters",
-  sqkm: "square kilometers",
-  sqin: "square inches",
-  sqft: "square feet",
-  sqmi: "square miles",
-  sqyd: "square yards"
-}
-const displayunits = {
-  F: " °F",
-  C: " °C",
-  kelvin: "K",
-  "square millimeters": "mm²",
-  "square centimeters": "cm²",
-  "square decimeters": "dm²",
-  "square meters": "m²",
-  "square kilometers": "km²",
-  "square inches": "in²",
-  "square feet": "ft²",
-  "square miles": "mi²",
-  "square yards": "yd²",
-  "cubic millimeters": "mm³",
-  "cubic centimeters": "cm³",
-  "cubic decimeters": "dm³",
-  "cubic meters": "m³",
-  "cubic kilometers": "km³",
-  "cubic inches": "in³",
-  "cubic feet": "ft³",
-  "cubic miles": "mi³",
-  "cubic yards": "yd³",
-  rad: "",
-  deg: "°"
-};
 const convertStr = (from, to) => {
   to = (unitcorrections[to] || to).trim();
   if (/^\d+' ?\d+(''|")?$/i.test(from)) {
@@ -87,7 +47,7 @@ const convertStr = (from, to) => {
       return convertMany(from.replace("'", "ft ").replace("''", "").replace('"', "") + "in")
         .to(to) + " " + (displayunits[to] || to);
     } catch (_) {
-      return "Don't know that one..."
+      return "Don't know that one...";
     }
   } else {
     let index = from.search(/[^.\,\d]/i);
@@ -95,7 +55,7 @@ const convertStr = (from, to) => {
     try {
       fromvalue = parseFloat(fromvalue);
     } catch (_) {
-      return "Your Number is a bit off..."
+      return "Your Number is a bit off...";
     }
     let fromunit = from.slice(index).toLowerCase().trim();
     fromunit = unitcorrections[fromunit] || fromunit;
@@ -105,7 +65,7 @@ const convertStr = (from, to) => {
       try {
         return convertMany(from).to(to) + " " + (displayunits[to] || to);
       } catch (_) {
-        return "Don't know that one..."
+        return "Don't know that one...";
       }
     }
   }
