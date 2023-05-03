@@ -95,7 +95,7 @@
     </tr>
   </table>
   <script>
-    function send(method, spell, response, data) {
+    function send(method = "", spell = "", response = "", data = "") {
       fetch("/", {
         method: "POST",
         body: JSON.stringify({
@@ -117,9 +117,9 @@
         if (e.key != "Enter") return;
         e.preventDefault();
         if (w.closest(".new"))
-          send("create", newrow.children[0].innerText.trim(), newrow.children[1].innerText.trim());
+          send("create", newrow.children[0].innerText.trim(), "", newrow.children[1].innerText.trim());
         else if (w.matches("td:nth-child(1)"))
-          send("spell", w.parentElement.getAttribute("data-id"), null, w.innerText.trim());
+          send("spell", w.parentElement.getAttribute("data-id"), "", w.innerText.trim());
         else if (w.matches("resp"))
           send("response", w.closest("tr").getAttribute("data-id"), w.parentElement.getAttribute("data-id"), w.innerText.trim());
       })

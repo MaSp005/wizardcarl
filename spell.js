@@ -11,7 +11,7 @@ module.exports = class Spell {
   }
 
   match(msg) {
-    return this.trigger.test(msg.replace(/[^a-z ]/ig,""))
+    return this.trigger.test(msg.replace(/[^a-z ]/ig, ""))
   }
 
   chooseResponse() {
@@ -24,5 +24,12 @@ module.exports = class Spell {
       if (weights[i] > random)
         break;
     return this.responses[i].text;
+  }
+
+  toJSON() {
+    return {
+      trigger: this.trigger.source,
+      responses: this.responses.map(x => `${x.weight ? x.weight + "$" : ""}${x.text}`)
+    }
   }
 }

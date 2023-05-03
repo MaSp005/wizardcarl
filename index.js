@@ -10,9 +10,7 @@ let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
 
 let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
-console.log(spellfiles.map(x => x.substring(7).split(".")[0]));
 let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
-console.log(newest);
 const spells = require(`./spells-${newest}.json`).map(x => new Spell(x));
 
 const client = new Client({
@@ -113,36 +111,36 @@ app.get("/", (_, res) => {
 });
 app.post("/", expr.json(), (req, res) => {
   let { method, spell, response, data } = req.body;
-  // console.log({ method, spell, response, data });
-  if (typeof spell != "undefined") spell = parseInt(spell.trim());
-  if (typeof response != "undefined") response = parseInt(response.trim());
+  console.log({ method, spell, response, data });
+  if (response) response = parseInt(response.trim());
   if (!method) return res.sendStatus(400);
-  const s = spells[spell];
+  const s = spells[parseInt(spell.trim())];
+  console.log({ method, spell, response, data, s });
   switch (method) {
     case "create":
-      if (typeof spell == "undefined" || typeof response == "undefined") return res.sendStatus(400);
+      if (!spell || !data) return res.sendStatus(400);
       spells.push(new Spell({
         trigger: spell,
-        responses: [response]
+        responses: [data.replaceAll("\\n", "\n")]
       }));
       break;
     case "weight":
-      if (typeof spell == "undefined" || typeof response == "undefined" || typeof data == "undefined") return res.sendStatus(400);
+      if (!spell || response === "" || !data) return res.sendStatus(400);
       if (response >= s.responses.length) s.responses[response] = {};
       if (!data) s.responses.splice(response, 1);
       else s.responses[response].weight = parseFloat(data);
       break;
     case "spell":
-      if (typeof spell == "undefined" || typeof data == "undefined") return res.sendStatus(400);
+      if (!spell || !data) return res.sendStatus(400);
       s.trigger = new RegExp(data, "i");
       break;
     case "response":
-      if (typeof spell == "undefined" || typeof response == "undefined" || typeof data == "undefined") return res.sendStatus(400);
+      if (!spell || response === "" || !data) return res.sendStatus(400);
       if (typeof s.responses[response] == "undefined") s.responses[response] = {};
-      s.responses[response].text = data.trim();
+      s.responses[response].text = data.trim().replaceAll("\\n", "\n");
       break;
     case "delete":
-      if (typeof spell == "undefined") return res.sendStatus(400);
+      if (!spell) return res.sendStatus(400);
       spells.splice(spell, 1);
       break;
   }
@@ -153,5 +151,5 @@ app.post("/", expr.json(), (req, res) => {
 app.listen(PORT);
 
 function savespells() {
-  fs.writeFileSync(`spells-${new Date().getTime()}.json`);
+  fs.writeFileSync(`spells-${Date.now()}.json`, JSON.stringify(spells.map(x => x.toJSON())), "utf8");
 }
