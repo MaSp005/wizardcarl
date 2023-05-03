@@ -2,12 +2,18 @@
 
 const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
 const vm = require("vm");
+const fs = require("fs");
 const { convert, convertMany } = require("convert");
 const { TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
-const spells = require("./spells.json").map(x => new Spell(x));
+
+let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
+console.log(spellfiles.map(x => x.substring(7).split(".")[0]));
+let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
+console.log(newest);
+const spells = require(`./spells-${newest}.json`).map(x => new Spell(x));
 
 const client = new Client({
   intents: [
@@ -141,6 +147,11 @@ app.post("/", expr.json(), (req, res) => {
       break;
   }
   res.sendStatus(204);
+  savespells();
 });
 
 app.listen(PORT);
+
+function savespells() {
+  fs.writeFileSync(`spells-${new Date().getTime()}.json`);
+}
