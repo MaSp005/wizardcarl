@@ -1,1 +1,6 @@
 node_modules
+.vscode/
+.gitignore
+*.json
+logo.*
+start.sh
