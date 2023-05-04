@@ -376,7 +376,7 @@
   {
     "trigger": "^carl calculate ",
     "responses": [
-      "=>(()=>{try { return msg.slice(15) + ' = ' + eval(msg.slice(15).replace('^','**').replace('\\\\','')); } catch (_) { return 'I\\'m not *that* smart...' }})()"
+      "=>(()=>{try { return msg.slice(15) + ' = ' + evaluate(msg.slice(15)); } catch (_) { return 'I\\'m not *that* smart...' }})()"
     ]
   },
   {

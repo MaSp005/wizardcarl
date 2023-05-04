@@ -4,6 +4,7 @@ const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js'
 const vm = require("vm");
 const fs = require("fs");
 const { convert, convertMany } = require("convert");
+const { evaluate } = require("mathjs");
 const { TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
@@ -36,7 +37,7 @@ client.on("messageCreate", msg => {
   if (!spell) return;
   let response = spell.chooseResponse();
   if (response.startsWith("=>")) {
-    response = vm.runInContext(response.slice(2), vm.createContext({ msg: msg.content, convertStr }));
+    response = vm.runInContext(response.slice(2), vm.createContext({ msg: msg.content, convertStr, evaluate }));
   }
   msg.channel.send({ content: response.replace("%userid", msg.member.user.id) });
 })
@@ -104,7 +105,7 @@ const convertStr = (from, to) => {
 const expr = require("express");
 const app = expr();
 
-app.set("view engine", "ejs");;
+app.set("view engine", "ejs");
 
 app.get("/", (_, res) => {
   res.render("dash", { spells });
