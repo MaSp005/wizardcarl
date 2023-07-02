@@ -34,6 +34,26 @@ client.once(Events.ClientReady, () => {
 client.on("messageCreate", msg => {
   if (msg.author.bot) return;
   if (!CHANNELS.includes(msg.channel.id)) return;
+  // check special spells here for simplicity
+  if (/^carl (calculate|calc|eval|c|math) /.test(msg.content)) {
+    let response = (msg => {
+      try {
+        let p = msg.slice(5);
+        p = p.slice(p.trim().indexOf(" "));
+        return p + ' = ' + doMath(p);
+      } catch (_) { return "Aint a thing" }})(msg.content);
+    return msg.channel.send({ content: response });
+  } else if (/^carl (convert|conv|translate|tl?)/.test(msg.content)) {
+    let response = (msg => {
+      let from = msg.slice(5);
+      from = from.slice(from.trim().indexOf(" "));
+      let i = from.search(/ to | in /i);
+      let to = from.slice(i + 4);
+      from = from.slice(0, i);
+      return convertStr(from.trim(), to.trim(), msg);
+    })(msg.content);
+    return msg.channel.send({ content: response });
+  }
   let spell = findSpell(msg.content);
   if (!spell) return;
   let response = spell.chooseResponse();
