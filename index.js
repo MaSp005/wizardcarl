@@ -15,6 +15,8 @@ let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).sp
 const spells = require(`./spells-${newest}.json`).map(x => new Spell(x));
 let ans = null;
 
+let count = -1;
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -34,15 +36,18 @@ client.once(Events.ClientReady, () => {
 client.on("messageCreate", msg => {
   if (msg.author.bot) return;
   if (!CHANNELS.includes(msg.channel.id)) return;
+  if (count >= 0 && /^\d+$/.test(msg.content)) {
+    let c = parseInt(msg.content);
+    if (c == count + 1) count++;
+    else {
+      count = -1;
+      return msg.channel.send({ content: `<@${msg.author.id}> blew it. start over with \`carl count\`.` });
+    }
+  }
   // check special spells here for simplicity
-  if (/^carl (calculate|calc|eval|c|math) /.test(msg.content)) {
-    let response = (msg => {
-      try {
-        let p = msg.slice(5);
-        p = p.slice(p.trim().indexOf(" "));
-        return p + ' = ' + doMath(p);
-      } catch (_) { return "Aint a thing" }})(msg.content);
-    return msg.channel.send({ content: response });
+  if (/^carl count$/.test(msg.content)) {
+    count = 1;
+    return msg.channel.send({ content: `1` });
   } else if (/^carl (convert|conv|translate|tl?)/.test(msg.content)) {
     let response = (msg => {
       let from = msg.slice(5);
@@ -51,6 +56,15 @@ client.on("messageCreate", msg => {
       let to = from.slice(i + 4);
       from = from.slice(0, i);
       return convertStr(from.trim(), to.trim(), msg);
+    })(msg.content);
+    return msg.channel.send({ content: response });
+  } else if (/^carl (calculate|calc|eval|c|math) /.test(msg.content)) {
+    let response = (msg => {
+      try {
+        let p = msg.slice(5);
+        p = p.slice(p.trim().indexOf(" "));
+        return p + ' = ' + doMath(p);
+      } catch (_) { return "Aint a thing" }
     })(msg.content);
     return msg.channel.send({ content: response });
   }
