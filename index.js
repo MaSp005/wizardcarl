@@ -13,6 +13,7 @@ const Spell = require("./spell");
 let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
 let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
 const spells = require(`./spells-${newest}.json`).map(x => new Spell(x));
+let ans = null;
 
 const client = new Client({
   intents: [
@@ -37,19 +38,28 @@ client.on("messageCreate", msg => {
   if (!spell) return;
   let response = spell.chooseResponse();
   if (response.startsWith("=>")) {
-    response = vm.runInContext(response.slice(2), vm.createContext({ msg: msg.content, convertStr, evaluate }));
+    response = vm.runInContext(response.slice(2), vm.createContext({
+      msg: msg.content, convertStr, doMath
+    }));
   }
   msg.channel.send({ content: response.replace("%userid", msg.member.user.id) });
 })
 
 client.login(TOKEN);
 
+const ansregex = /that|ans|la(te)?st/gi;
 const findSpell = msg => spells.find(s => s.match(msg));
-const convertStr = (from, to) => {
+const doMath = p => ans = evaluate(p.replace(ansregex, ans));
+const convertStr = (from, to, msg) => {
+  console.log({ from, to, msg });
+  if (ansregex.test(from)) {
+    console.log("using ans:", ans);
+    from = ans
+  };
   to = (unitcorrections[to] || to).trim();
   if (/^\d+' ?\d+(''|")?$/i.test(from)) { //* FOOT NOTATION
     try {
-      return convertMany(from.replace("'", "ft ").replace("''", "").replace('"', "") + "in")
+      return ans = convertMany(from.replace("'", "ft ").replace("''", "").replace('"', "") + "in")
         .to(to) + " " + (displayunits[to] || to);
     } catch (_) {
       return "Don't know that one...";
@@ -58,17 +68,24 @@ const convertStr = (from, to) => {
     let index = from.search(/[^.\,\d:]/i);
     let fromunit = from.slice(index).toLowerCase().trim();
     let fromvalue = from.slice(0, index).replace(",", ".");
-    if (fromunit.toUpperCase() in timezones && to.toUpperCase() in timezones) { //* TIMEZONES
+    if ((fromunit.toUpperCase() in timezones || from.toLowerCase() == "now") && to.toUpperCase() in timezones) { //* TIMEZONES
       let hour, minute;
+      let now = from.toLowerCase() == "now";
       try {
-        let split = fromvalue.split(":");
-        hour = parseInt(split[0]);
-        minute = parseInt(split[1] || "0");
+        if (now) {
+          hour = new Date().getUTCHours();
+          minute = new Date().getUTCMinutes();
+          fromunit = "UTC";
+        } else {
+          let split = fromvalue.split(":");
+          hour = parseInt(split[0]);
+          minute = parseInt(split[1] || "0");
+        }
       } catch (_) {
         return "Your Number is a bit off...";
       }
       let offset = timezones[to.toUpperCase()] - timezones[fromunit.toUpperCase()];
-      offset += (offset != 0) * (offset > 0 ? -1 : 1);
+      offset += (offset != 0) * (offset > 0 ? 0 : 1);
       hour += offset;
       minute += Math.floor((offset % 1) * 60);
       hour %= 24;
@@ -76,9 +93,10 @@ const convertStr = (from, to) => {
       if (hour < 0) hour += 24;
       if (minute < 0) minute += 60;
       let pm = hour > 12;
+      ans = hour + ":" + minute.toString().padStart(2, "0") + to.toUpperCase();
       return `**${hour}:${minute.toString().padStart(2, "0")}** ${to.toUpperCase()} or ` +
-        `${hour % 12 || 12}:${minute.toString().padStart(2, "0")} ${pm ? "PM" : "AM"} ${to.toUpperCase()}, ` +
-        `**${Math.trunc(offset)}:${((offset % 1) * 60).toString().padStart(2, "0")}** offset.`;
+        `${hour % 12 || 12}:${minute.toString().padStart(2, "0")} ${pm ? "PM" : "AM"} ${to.toUpperCase()}` +
+        (!now ? `, **${Math.trunc(offset)}:${((offset % 1) * 60).toString().padStart(2, "0")}** offset.` : "");
     }
     try {
       if (isNaN(fromvalue)) throw "";
@@ -88,10 +106,10 @@ const convertStr = (from, to) => {
     }
     fromunit = unitcorrections[fromunit] || fromunit;
     try { //* CONVERSION
-      return convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
+      return ans = convert(fromvalue, fromunit).to(to) + " " + (displayunits[to] || to);
     } catch (_) {
       try { //* BACKUP CONVERTMANY
-        return convertMany(from).to(to) + " " + (displayunits[to] || to);
+        return ans = convertMany(from).to(to) + " " + (displayunits[to] || to);
       } catch (_) {
         return "Don't know that one...";
       }

@@ -5,6 +5,7 @@
     "k": " kelvin",
     "d": "days",
     "°": "deg",
+    "yds": "yd",
     "sqmm": "square millimeters",
     "sqcm": "square centimeters",
     "sqdm": "square decimeters",
@@ -13,6 +14,7 @@
     "sqin": "square inches",
     "sqft": "square feet",
     "sqmi": "square miles",
+    "sqyds": "square yards",
     "sqyd": "square yards"
   },
   "displayunits": {
