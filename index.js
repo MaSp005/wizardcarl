@@ -1,11 +1,11 @@
 // BOT
 
-const { Client, Events, GatewayIntentBits, ActivityType } = require('discord.js');
+const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes } = require('discord.js');
 const vm = require("vm");
 const fs = require("fs");
 const { convert, convertMany } = require("convert");
 const { evaluate } = require("mathjs");
-const { TOKEN, PORT } = require('./config.json');
+const { CLIENTID, TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
@@ -42,7 +42,29 @@ client.once(Events.ClientReady, () => {
   });
 });
 
-client.on("messageCreate", msg => {
+const rest = new REST().setToken(TOKEN);
+(async () => {
+  await rest.put(
+    Routes.applicationCommands(CLIENTID),
+    {
+      body: [
+        {
+          "name": "admin",
+          "description": "Apprentice Carl admin controls. Don't even try.",
+          "options": [
+            {
+              "type": 1,
+              "name": "ping",
+              "description": "Check bot's ping"
+            }
+          ]
+        }
+      ]
+    },
+  );
+})();
+
+client.on(Events.MessageCreate, msg => {
   if (msg.author.bot) return;
   if (!CHANNELS.includes(msg.channel.id)) return;
   if (count >= 0 && /^\d+$/.test(msg.content)) {
@@ -87,7 +109,22 @@ client.on("messageCreate", msg => {
   }
   if (!response) return;
   msg.channel.send({ content: response.replace("%userid", msg.member.user.id) });
-})
+});
+
+client.on(Events.InteractionCreate, int => {
+  if (!int.isCommand()) return;
+  if (int.user.id != "439490179968008194") return int.reply({
+    content: "You're stepping into unsafe territory... [Unauthorized]",
+    ephemeral: true
+  });
+  switch (int.options._subcommand) {
+    case "ping":
+      let ts = Date.now();
+      int.reply({ content: ":ping_pong: Pong!" }).then(() => {
+        int.editReply({ content: ":ping_pong: Pong! " + (Date.now() - ts) + "ms" });
+      })
+  };
+});
 
 client.login(TOKEN);
 
