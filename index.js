@@ -21,15 +21,24 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates
   ]
 });
 
 client.once(Events.ClientReady, () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
   client.user.setPresence({
-    activities: [{ name: `to your spells.`, type: ActivityType.Listening }],
+    activities: [{ name: "your spells.", type: ActivityType.Listening }],
     status: 'online',
+  });
+
+  const vcstartchannel = (client.channels.cache.get("1101640060958421022"))
+  client.on(Events.VoiceStateUpdate, (old, now) => {
+    if (!now.channel) return;
+    if (now.channel.members.size == 1 && !old.channel) {
+      vcstartchannel.send("testing phase: some idiot joined a vc. go hate on 'em");
+    }
   });
 });
 
@@ -76,6 +85,7 @@ client.on("messageCreate", msg => {
       msg: msg.content, convertStr, doMath
     }));
   }
+  if (!response) return;
   msg.channel.send({ content: response.replace("%userid", msg.member.user.id) });
 })
 
