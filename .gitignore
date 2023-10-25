@@ -1,6 +1,7 @@
 node_modules
 .vscode/
 .gitignore
-*.json
+spells*.json
+config.json
 logo.*
 start.sh

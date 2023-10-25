@@ -1,14 +1,14 @@
 // BOT
 
-const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes } = require('discord.js');
+const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes, EmbedBuilder } = require('discord.js');
 const vm = require("vm");
 const fs = require("fs");
 const { convert, convertMany } = require("convert");
 const { evaluate } = require("mathjs");
 const { CLIENTID, TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
-let CHANNELS = require('./config.json').CHANNELS.map(x => x.split(" ")[0]);
 const Spell = require("./spell");
+const vars = require("./vars.json");
 
 let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
 let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
@@ -33,11 +33,14 @@ client.once(Events.ClientReady, () => {
     status: 'online',
   });
 
-  const vcstartchannel = (client.channels.cache.get("1101640060958421022"))
+  const vcstartchannel = (client.channels.cache.get(vars.vcjoinchannel))
   client.on(Events.VoiceStateUpdate, (old, now) => {
     if (!now.channel) return;
     if (now.channel.members.size == 1 && !old.channel) {
-      vcstartchannel.send("testing phase: some idiot joined a vc. go hate on 'em");
+      vcstartchannel.send(vars.vcjoinmsg
+        .replace("$username", now.member.displayName)
+        .replace("$channelname", now.channel.name)
+      );
     }
   });
 });
@@ -56,6 +59,29 @@ const rest = new REST().setToken(TOKEN);
               "type": 1,
               "name": "ping",
               "description": "Check bot's ping"
+            },
+            {
+              "type": 1,
+              "name": "var",
+              "description": "Set a variable.",
+              "options": [
+                {
+                  "type": 3,
+                  "name": "variable",
+                  "description": "Variable Name",
+                  "choices": Object.keys(vars).map(x => ({
+                    "name": x,
+                    "value": x
+                  })),
+                  "required": true
+                },
+                {
+                  "type": 3,
+                  "name": "value",
+                  "description": "Variable Value",
+                  "required": true
+                }
+              ]
             }
           ]
         }
@@ -66,7 +92,7 @@ const rest = new REST().setToken(TOKEN);
 
 client.on(Events.MessageCreate, msg => {
   if (msg.author.bot) return;
-  if (!CHANNELS.includes(msg.channel.id)) return;
+  if (!vars.spellchannels.includes(msg.channel.id)) return;
   if (count >= 0 && /^\d+$/.test(msg.content)) {
     let c = parseInt(msg.content);
     if (c == count + 1) count++;
@@ -117,12 +143,79 @@ client.on(Events.InteractionCreate, int => {
     content: "You're stepping into unsafe territory... [Unauthorized]",
     ephemeral: true
   });
-  switch (int.options._subcommand) {
+  switch (int.options.getSubcommand()) {
     case "ping":
       let ts = Date.now();
       int.reply({ content: ":ping_pong: Pong!" }).then(() => {
         int.editReply({ content: ":ping_pong: Pong! " + (Date.now() - ts) + "ms" });
       })
+      break;
+    case "var":
+      let name = int.options.getString("variable");
+      let value = int.options.getString("value");
+      if (!name || !value || !(name in vars)) return int.reply({
+        content: "You're confusing me... [Bad parameters: not defined or invalid]",
+        ephemeral: true
+      });
+      switch (name) {
+        case "vcjoinmsg":
+          if (!value.includes("$channelname")) int.reply({
+            content: "You're confusing me... [Bad parameters: need to include $channelname]",
+            ephemeral: true
+          });
+          else if (!value.includes("$username")) int.reply({
+            content: "You're confusing me... [Bad parameters: need to include $username]",
+            ephemeral: true
+          });
+          else {
+            vars.vcjoinmsg = value;
+            fs.writeFileSync("./vars.json", JSON.stringify(vars), "utf8");
+            int.reply({
+              content: "Success!",
+              ephemeral: true
+            });
+          }
+          break;
+        case "spellchannels":
+          if (value == "list") {
+            int.reply({
+              embeds: [
+                new EmbedBuilder().setTitle("I'm active and listening in:")
+                  .setDescription(vars.spellchannels.map(x => `<#${x}>`).join("\n"))
+                  .setTimestamp(Date.now())
+              ],
+              ephemeral: true
+            });
+          } else if (value.startsWith("+")) {
+            vars.spellchannels.push(value.slice(1));
+            fs.writeFileSync("./vars.json", JSON.stringify(vars), "utf8");
+            int.reply({
+              content: `Added <#${value.slice(1)}>!`,
+              ephemeral: true
+            });
+          } else if (value.startsWith("-")) {
+            let idx = vars.spellchannels.indexOf(value.slice(1));
+            if (idx > -1) vars.spellchannels.splice(idx, 1);
+            fs.writeFileSync("./vars.json", JSON.stringify(vars), "utf8");
+            int.reply({
+              content: `Removed <#${value.slice(1)}>!`,
+              ephemeral: true
+            });
+          } else int.reply({
+            content: "You're confusing me... [Bad parameters: need to start with + or -]",
+            ephemeral: true
+          });
+          break;
+        default: int.reply({
+          content: "You're confusing me... [Bad parameters]",
+          ephemeral: true
+        });
+      }
+      break;
+    default: int.reply({
+      content: "You're confusing me... [Bad parameters]",
+      ephemeral: true
+    });
   };
 });
 
