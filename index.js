@@ -26,6 +26,8 @@ const client = new Client({
   ]
 });
 
+let vcstartchannel = client.channels.cache.get(vars.vcjoinchannel);
+
 client.once(Events.ClientReady, () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
   client.user.setPresence({
@@ -33,7 +35,6 @@ client.once(Events.ClientReady, () => {
     status: 'online',
   });
 
-  const vcstartchannel = (client.channels.cache.get(vars.vcjoinchannel))
   client.on(Events.VoiceStateUpdate, (old, now) => {
     if (!now.channel) return;
     if (now.channel.members.size == 1 && !old.channel) {
@@ -45,6 +46,7 @@ client.once(Events.ClientReady, () => {
   });
 });
 
+// slash command
 const rest = new REST().setToken(TOKEN);
 (async () => {
   await rest.put(
@@ -158,6 +160,23 @@ client.on(Events.InteractionCreate, int => {
         ephemeral: true
       });
       switch (name) {
+        case "vcjoinchannel":
+          let ch = client.channels.cache.get(value);
+          if (ch) {
+            vcstartchannel = ch;
+            vars.vcstartchannel = value;
+            fs.writeFileSync("./vars.json", JSON.stringify(vars), "utf8");
+            int.reply({
+              content: "Success!",
+              ephemeral: true
+            });
+          } else {
+            if (!value.includes("$channelname")) int.reply({
+              content: "That won't work out... [Channel not existent]",
+              ephemeral: true
+            });
+          }
+          break;
         case "vcjoinmsg":
           if (!value.includes("$channelname")) int.reply({
             content: "You're confusing me... [Bad parameters: need to include $channelname]",
