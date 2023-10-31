@@ -1,6 +1,7 @@
 node_modules
 .vscode/
 .gitignore
+amogus/gen/*
 spells*.json
 config.json
 logo.*

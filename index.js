@@ -9,6 +9,7 @@ const { CLIENTID, TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 const Spell = require("./spell");
 const vars = require("./vars.json");
+const amogus = require("./amogus").gen;
 
 let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
 let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
@@ -26,7 +27,7 @@ const client = new Client({
   ]
 });
 
-let vcstartchannel = client.channels.cache.get(vars.vcjoinchannel);
+let vcstartchannel;
 
 client.once(Events.ClientReady, () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
@@ -34,6 +35,8 @@ client.once(Events.ClientReady, () => {
     activities: [{ name: "your spells.", type: ActivityType.Listening }],
     status: 'online',
   });
+
+  vcstartchannel = client.channels.cache.get(vars.vcjoinchannel);
 
   client.on(Events.VoiceStateUpdate, (old, now) => {
     if (!now.channel) return;
@@ -126,6 +129,17 @@ client.on(Events.MessageCreate, msg => {
       } catch (_) { return "Aint a thing" }
     })(msg.content);
     return msg.channel.send({ content: response });
+  } else if (/^carl amogus$/.test(msg.content)) {
+    msg.channel.sendTyping();
+    amogus().then(fn => {
+      msg.channel.send({
+        files: [{
+          attachment: fn,
+          name: 'file.png',
+          description: 'carl'
+        }]
+      }).catch(console.error);
+    })
   }
   let spell = findSpell(msg.content);
   if (!spell) return;
