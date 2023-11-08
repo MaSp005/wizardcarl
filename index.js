@@ -139,7 +139,7 @@ client.on(Events.MessageCreate, msg => {
           description: 'carl'
         }]
       }).catch(console.error);
-    })
+    }, () => msg.react("🥴"));
   }
   let spell = findSpell(msg.content);
   if (!spell) return;
