@@ -1,7 +1,7 @@
 const skia = require("skia-canvas");
-const fs = require("fs");
 
-skia.FontLibrary.use("Comic", ["./amogus/COMIC.TTF"])
+skia.FontLibrary.use("Comic", ["./amogus/COMIC.TTF"]);
+const amogusnum = require("fs").readdirSync("./amogus").filter(x => /\d+\.png/.test(x)).length;
 
 exports.gen = () => {
   return new Promise((res, rej) => {
@@ -38,7 +38,7 @@ exports.gen = () => {
         canvas.saveAsSync(fn);
         res(fn);
       }
-      img.src = "./amogus/" + Math.floor(Math.random() * 6) + ".png";
+      img.src = "./amogus/" + Math.floor(Math.random() * amogusnum) + ".png";
     }
     img.src = "https://picsum.photos/600/600";
   })
