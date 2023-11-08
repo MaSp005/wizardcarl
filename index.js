@@ -28,6 +28,7 @@ const client = new Client({
 });
 
 let vcstartchannel;
+let lastamogus = 0;
 
 client.once(Events.ClientReady, () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
@@ -130,6 +131,8 @@ client.on(Events.MessageCreate, msg => {
     })(msg.content);
     return msg.channel.send({ content: response });
   } else if (/^carl amogus$/.test(msg.content)) {
+    if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
+    lastamogus = Date.now();
     msg.channel.sendTyping();
     amogus().then(fn => {
       msg.channel.send({
@@ -140,6 +143,7 @@ client.on(Events.MessageCreate, msg => {
         }]
       }).catch(console.error);
     }, () => msg.react("🥴"));
+    return;
   }
   let spell = findSpell(msg.content);
   if (!spell) return;
@@ -239,6 +243,12 @@ client.on(Events.InteractionCreate, int => {
             ephemeral: true
           });
           break;
+        case "amogustimeout":
+          amogustimeout = Math.abs(parseInt(value));
+          int.reply({
+            content: "Success!",
+            ephemeral: true
+          });
         default: int.reply({
           content: "You're confusing me... [Bad parameters]",
           ephemeral: true

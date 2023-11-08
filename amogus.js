@@ -3,6 +3,9 @@ const skia = require("skia-canvas");
 skia.FontLibrary.use("Comic", ["./amogus/COMIC.TTF"]);
 const amogusnum = require("fs").readdirSync("./amogus").filter(x => /\d+\.png/.test(x)).length;
 
+const amogusunicode = new skia.Image(66, 67);
+amogusunicode.src = "./amogus/amogusunicode.png";
+
 exports.gen = () => {
   return new Promise((res, rej) => {
     try {
@@ -16,10 +19,10 @@ exports.gen = () => {
       ctx.textAlign = "center";
       ctx.font = "80px Comic"
       let text = [
-        "amogus",
-        "ඞ"
-      ][Math.floor(Math.random() * 2)];
-      ctx.fillText(text, 400, 900);
+        () => ctx.fillText("amogus", 400, 900),
+        () => ctx.drawImage(amogusunicode, 367, 837)
+      ][Math.floor(Math.random() * 2)]();
+      // ctx.fillText(text, 400, 900);
 
       let img = new skia.Image(600, 600);
       img.onload = () => {
