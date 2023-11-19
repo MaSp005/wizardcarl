@@ -23,7 +23,8 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildVoiceStates
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMessageReactions
   ]
 });
 
@@ -261,6 +262,10 @@ client.on(Events.InteractionCreate, int => {
     });
   };
 });
+
+client.on(Events.MessageReactionAdd, ev => {
+  if (ev.message.editable && ev.emoji.name == "❌") ev.message.delete();
+})
 
 client.login(TOKEN);
 
