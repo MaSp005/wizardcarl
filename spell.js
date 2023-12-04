@@ -3,7 +3,7 @@ module.exports = class Spell {
     this.trigger = new RegExp(data.trigger, "i");
     this.responses = data.responses.map(x =>
       typeof x == "object" ? x :
-        x.includes("$") ? {
+        /^\d+(.\d+)?\$/.test(x) ? {
           text: x.split("$").slice(1).join("$"),
           weight: parseFloat(x.split("$")[0])
         } : { text: x }
