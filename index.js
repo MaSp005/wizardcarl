@@ -127,7 +127,7 @@ client.on(Events.MessageCreate, msg => {
       try {
         let p = msg.slice(5);
         p = p.slice(p.trim().indexOf(" "));
-        return p + ' = ' + doMath(p);
+        return p.replace(ansregex, ans) + ' = ' + doMath(p);
       } catch (_) { return "Aint a thing" }
     })(msg.content);
     return msg.channel.send({ content: response });

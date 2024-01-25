@@ -18,11 +18,10 @@ exports.gen = () => {
       ctx.fillRect(90, 90, 620, 620);
       ctx.textAlign = "center";
       ctx.font = "80px Comic"
-      let text = [
+      [
         () => ctx.fillText("amogus", 400, 900),
         () => ctx.drawImage(amogusunicode, 367, 837)
       ][Math.floor(Math.random() * 2)]();
-      // ctx.fillText(text, 400, 900);
 
       let img = new skia.Image(600, 600);
       img.onload = () => {
