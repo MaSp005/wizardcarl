@@ -60,7 +60,7 @@ const rest = new REST().setToken(TOKEN);
       body: [
         {
           "name": "admin",
-          "description": "Apprentice Carl admin controls. Don't even try.",
+          "description": "Lieutenant Carl admin controls. Don't even try.",
           "options": [
             {
               "type": 1,
@@ -86,6 +86,51 @@ const rest = new REST().setToken(TOKEN);
                   "type": 3,
                   "name": "value",
                   "description": "Variable Value",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "name": "send",
+              "description": "Send a custom message.",
+              "options": [
+                {
+                  "type": 3,
+                  "name": "message",
+                  "description": "Message to be sent.",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "name": "react",
+              "description": "Imitates your reactions to a message.",
+              "options": [
+                {
+                  "type": 3,
+                  "name": "message",
+                  "description": "Message ID",
+                  "required": true
+                },
+                {
+                  "type": 3,
+                  "name": "reaction",
+                  "description": "Emoji",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "name": "debug",
+              "description": "Debug the spell matching for a given message.",
+              "options": [
+                {
+                  "type": 3,
+                  "name": "message",
+                  "description": "Message to be checked.",
                   "required": true
                 }
               ]
@@ -255,6 +300,39 @@ client.on(Events.InteractionCreate, int => {
           ephemeral: true
         });
       }
+      break;
+    case "send":
+      int.channel.send(int.options.getString("message").replaceAll("\\n", "\n"));
+      int.reply({
+        content: "Sent.",
+        ephemeral: true
+      }).then(msg => setTimeout(() => msg.delete(), 1000));
+      break;
+    case "react":
+      let msg = int.channel.messages.cache.get(int.options.getString("message"));
+      if (!msg) return int.reply({
+        content: "Message id not found.",
+        ephemeral: true
+      });
+      try {
+        msg.react(int.options.getString("reaction"));
+        int.reply({
+          content: "Done.",
+          ephemeral: true
+        }).then(msg => setTimeout(() => msg.delete(), 1000));
+      } catch {
+        int.reply({
+          content: "Emoji invalid.",
+          ephemeral: true
+        });
+      }
+      break;
+    case "debug":
+      let spell = findSpell(int.options.getString("message"));
+      int.reply({
+        content: spell ? JSON.stringify(spell) : "No spell matched.",
+        ephemeral: true
+      });
       break;
     default: int.reply({
       content: "You're confusing me... [Bad parameters]",
