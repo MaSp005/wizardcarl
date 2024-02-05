@@ -5,6 +5,7 @@ const vm = require("vm");
 const fs = require("fs");
 const { convert, convertMany } = require("convert");
 const { evaluate } = require("mathjs");
+const { parse, Equation } = require("algebra.js");
 const { CLIENTID, TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 const Spell = require("./spell");
@@ -176,6 +177,19 @@ client.on(Events.MessageCreate, msg => {
       } catch (_) { return "Aint a thing" }
     })(msg.content);
     return msg.channel.send({ content: response });
+  } else if (/^carl solve .+/.test(msg.content)) {
+    let left_expr = parse(msg.content.slice(11).split("=")[0].trim());
+    let right_expr = parse(msg.content.slice(11).split("=")[1].trim());
+    let eq = new Equation(left_expr, right_expr);
+    try {
+      let answer = eq.solveFor("x");
+      console.log(answer);
+      if (typeof answer == "undefined" || answer == null || answer.length == 0) msg.channel.send("↯ No solution found.");
+      else if (Array.isArray(answer)) msg.channel.send(answer.map(x => "x = " + x.toString()).join(" ∨ "));
+      else msg.channel.send("x = " + answer.toString());
+    } catch {
+      msg.channel.send("You were either using another variable instead of x, in which case please change the name of it, or you were going beyond linear equations, at which point just go to [WolframAlpha](https://www.wolframalpha.com/)...")
+    }
   } else if (/^carl amogus$/.test(msg.content)) {
     if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
     lastamogus = Date.now();
