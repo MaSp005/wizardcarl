@@ -178,17 +178,26 @@ client.on(Events.MessageCreate, msg => {
     })(msg.content);
     return msg.channel.send({ content: response });
   } else if (/^carl solve .+/.test(msg.content)) {
-    let left_expr = parse(msg.content.slice(11).split("=")[0].trim());
-    let right_expr = parse(msg.content.slice(11).split("=")[1].trim());
-    let eq = new Equation(left_expr, right_expr);
+    let eq;
+    try {
+      let left_expr = parse(msg.content.slice(11).split("=")[0].trim());
+      let right_expr = parse(msg.content.slice(11).split("=")[1].trim());
+      eq = new Equation(left_expr, right_expr);
+    } catch {
+      msg.channel.send("Something went wrong when interpreting your equation... Please check your formatting.\n! Decimal numbers with a . not a ,");
+    }
     try {
       let answer = eq.solveFor("x");
       console.log(answer);
-      if (typeof answer == "undefined" || answer == null || answer.length == 0) msg.channel.send("↯ No solution found.");
-      else if (Array.isArray(answer)) msg.channel.send(answer.map(x => "x = " + x.toString()).join(" ∨ "));
-      else msg.channel.send("x = " + answer.toString());
-    } catch {
-      msg.channel.send("You were either using another variable instead of x, in which case please change the name of it, or you were going beyond linear equations, at which point just go to [WolframAlpha](https://www.wolframalpha.com/)...")
+      let str = eq.toString() + " <=> ";
+      if (typeof answer == "undefined" || answer == null) str = "This seems to be an equation I cannot solve, here's the door :) :door: [WolframAlpha](<https://www.wolframalpha.com/>)";
+      else if (answer.length == 0) str = "↯ No solution found.";
+      else if (Array.isArray(answer)) str += answer.map(x => `x = **${x.toString()}**`).join(" ∨ ");
+      else str += "x = " + answer.toString();
+      msg.channel.send(str);
+    } catch (e) {
+      console.log(e);
+      msg.channel.send("You were either using another variable instead of x, in which case please change the name of it, or you were going beyond linear equations, at which point just go to [WolframAlpha](<https://www.wolframalpha.com/>)...")
     }
   } else if (/^carl amogus$/.test(msg.content)) {
     if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
