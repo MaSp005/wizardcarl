@@ -479,9 +479,10 @@ app.post("/", expr.json(), (req, res) => {
       s.trigger = new RegExp(data, "i");
       break;
     case "response":
-      if (!spell || response === "" || !data) return res.sendStatus(400);
+      if (!spell || response === "") return res.sendStatus(400);
       if (typeof s.responses[response] == "undefined") s.responses[response] = {};
-      s.responses[response].text = data.trim().replaceAll("\\n", "\n");
+      if (!data) s.responses.splice(response, 1);
+      else s.responses[response].text = data.trim().replaceAll("\\n", "\n");
       break;
     case "delete":
       if (!spell) return res.sendStatus(400);

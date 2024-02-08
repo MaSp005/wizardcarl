@@ -1,0 +1,6 @@
+{
+  "TOKEN": "STRING: Discord Bot Token",
+  "CLIENTID": "STRING: Discord App ID",
+  "INVITE": "STRING: Bot Invite Link (not used but this is a good place for it)",
+  "PORT": "NUMBER: Port of Web App"
+}
