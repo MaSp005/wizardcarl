@@ -185,6 +185,7 @@ client.on(Events.MessageCreate, msg => {
       eq = new Equation(left_expr, right_expr);
     } catch {
       msg.channel.send("Something went wrong when interpreting your equation... Please check your formatting.\n! Decimal numbers with a . not a ,");
+      return;
     }
     try {
       let answer = eq.solveFor("x");
@@ -199,6 +200,7 @@ client.on(Events.MessageCreate, msg => {
       console.log(e);
       msg.channel.send("You were either using another variable instead of x, in which case please change the name of it, or you were going beyond linear equations, at which point just go to [WolframAlpha](<https://www.wolframalpha.com/>)...")
     }
+    return;
   } else if (/^carl amogus$/.test(msg.content)) {
     if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
     lastamogus = Date.now();
