@@ -159,7 +159,13 @@ const rest = new REST().setToken(TOKEN);
 })();
 
 client.on(Events.MessageCreate, msg => {
-  if (msg.author.bot) return;
+  if (msg.author.bot) {
+    if (msg.channelId != "1012256902421426277") return;
+    if (msg.author.id != "432610292342587392") return;
+    if (!msg.content.endsWith("Congratulations, you won an uncommon nothing.")) return;
+    msg.channel.send("https://tenor.com/view/gamblecore-stickman-casino-gamble-gif-7118676210396292522")
+    return;
+  }
   if (!vars.spellchannels.includes(msg.channel.id)) return;
   if (count >= 0 && /^\d+$/.test(msg.content)) {
     let c = parseInt(msg.content);
@@ -216,6 +222,9 @@ client.on(Events.MessageCreate, msg => {
       msg.channel.send("You were either using another variable instead of x, in which case please change the name of it, or you were going beyond linear equations, at which point just go to [WolframAlpha](<https://www.wolframalpha.com/>)...")
     }
     return;
+  } else if (/^carl choose .+/.test(msg.content)) {
+    msg.channel.send(msg.content.slice(12).split(",")[Math.floor(Math.random() * msg.content.slice(12).split(",").length)].trim())
+    return;
   } else if (/^carl amogus$/.test(msg.content)) {
     if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
     lastamogus = Date.now();
@@ -237,7 +246,7 @@ client.on(Events.MessageCreate, msg => {
   guarantee = -1;
   if (response.startsWith("=>")) {
     response = vm.runInContext(response.slice(2), vm.createContext({
-      msg: msg.content, convertStr, doMath
+      msg: msg.content.replace(/[^a-z0-9- ]/ig, ""), convertStr, doMath
     }));
   }
   if (!response) return;

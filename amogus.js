@@ -17,7 +17,7 @@ exports.gen = () => {
       ctx.fillStyle = "white";
       ctx.fillRect(90, 90, 620, 620);
       ctx.textAlign = "center";
-      ctx.font = "80px Comic"
+      ctx.font = "80px Comic";
       [
         () => ctx.fillText("amogus", 400, 900),
         () => ctx.drawImage(amogusunicode, 367, 837)
@@ -44,6 +44,9 @@ exports.gen = () => {
         img.src = "./amogus/" + Math.floor(Math.random() * amogusnum) + ".png";
       }
       img.src = "https://picsum.photos/600/600";
-    } catch { rej() }
+    } catch (e) {
+      console.warn(e);
+      rej();
+    }
   })
 }
