@@ -10,7 +10,6 @@ const { CLIENTID, TOKEN, PORT } = require('./config.json');
 const { unitcorrections, displayunits, timezones } = require("./constants.json");
 const Spell = require("./spell");
 const vars = require("./vars.json");
-const amogus = require("./amogus").gen;
 
 let spellfiles = fs.readdirSync(__dirname).filter(x => x.startsWith("spells-"));
 let newest = Math.max(...spellfiles.map(x => new Date(parseInt(x.substring(7).split(".")[0])).getTime()));
@@ -30,7 +29,6 @@ const client = new Client({
 });
 
 let vcstartchannel;
-let lastamogus = 0;
 let guarantee = -1;
 
 client.once(Events.ClientReady, () => {
@@ -225,20 +223,6 @@ client.on(Events.MessageCreate, msg => {
   } else if (/^carl choose .+/.test(msg.content)) {
     msg.channel.send(msg.content.slice(12).split(",")[Math.floor(Math.random() * msg.content.slice(12).split(",").length)].trim())
     return;
-  } else if (/^carl amogus$/.test(msg.content)) {
-    if (Date.now() - lastamogus < vars.amogustimeout) return msg.react("🥵");
-    lastamogus = Date.now();
-    msg.channel.sendTyping();
-    amogus().then(fn => {
-      msg.channel.send({
-        files: [{
-          attachment: fn,
-          name: 'file.png',
-          description: 'carl'
-        }]
-      }).catch(console.error);
-    }, () => msg.react("🥴"));
-    return;
   }
   let spell = findSpell(msg.content);
   if (!spell) return;
@@ -339,12 +323,6 @@ client.on(Events.InteractionCreate, int => {
             ephemeral: true
           });
           break;
-        case "amogustimeout":
-          amogustimeout = Math.abs(parseInt(value));
-          int.reply({
-            content: "Success!",
-            ephemeral: true
-          });
         default: int.reply({
           content: "You're confusing me... [Bad parameters]",
           ephemeral: true
