@@ -14,15 +14,20 @@ module.exports = class Spell {
     return this.trigger.test(msg.replace(/\n+/g, " ").replace(/[^a-z0-9- ]/ig, ""));
   }
 
-  chooseResponse() {
+  chooseResponse(guarantee) {
+    if (this.responses.length == 1) return this.responses[0].text;
+    if (guarantee > -1 && guarantee < this.responses.length) return this.responses[guarantee].text;
+
     let weights = [this.responses[0].weight || 1];
     for (let i = 1; i < this.responses.length; i++)
       weights[i] = (this.responses[i].weight || 1) + weights[i - 1];
+
     let random = Math.random() * weights[weights.length - 1];
     let i;
     for (i = 0; i < weights.length; i++)
       if (weights[i] > random)
         break;
+
     return this.responses[i].text;
   }
 

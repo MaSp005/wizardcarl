@@ -1,6 +1,6 @@
 // BOT
 
-const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes, EmbedBuilder } = require('discord.js');
+const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const vm = require("vm");
 const fs = require("fs");
 const { convert, convertMany } = require("convert");
@@ -31,6 +31,7 @@ const client = new Client({
 
 let vcstartchannel;
 let lastamogus = 0;
+let guarantee = -1;
 
 client.once(Events.ClientReady, () => {
   console.log(`Ready! Logged in as ${client.user.tag}`);
@@ -62,6 +63,7 @@ const rest = new REST().setToken(TOKEN);
         {
           "name": "admin",
           "description": "Lieutenant Carl admin controls. Don't even try.",
+          "default_member_permissions": Number(PermissionFlagsBits.ManageGuildExpressions),
           "options": [
             {
               "type": 1,
@@ -119,6 +121,19 @@ const rest = new REST().setToken(TOKEN);
                   "type": 3,
                   "name": "reaction",
                   "description": "Emoji",
+                  "required": true
+                }
+              ]
+            },
+            {
+              "type": 1,
+              "name": "roll",
+              "description": "Guarantees a specific spell index on the next random selection.",
+              "options": [
+                {
+                  "type": 4,
+                  "name": "index",
+                  "description": "Index",
                   "required": true
                 }
               ]
@@ -218,7 +233,8 @@ client.on(Events.MessageCreate, msg => {
   }
   let spell = findSpell(msg.content);
   if (!spell) return;
-  let response = spell.chooseResponse();
+  let response = spell.chooseResponse(guarantee);
+  guarantee = -1;
   if (response.startsWith("=>")) {
     response = vm.runInContext(response.slice(2), vm.createContext({
       msg: msg.content, convertStr, doMath
@@ -331,7 +347,14 @@ client.on(Events.InteractionCreate, int => {
       int.reply({
         content: "Sent.",
         ephemeral: true
-      }).then(msg => setTimeout(() => msg.delete(), 1000));
+      })
+      break;
+    case "roll":
+      guarantee = int.options.getInteger("index");
+      int.reply({
+        content: "Will do boss o7",
+        ephemeral: true
+      })
       break;
     case "react":
       let msg = int.channel.messages.cache.get(int.options.getString("message"));
