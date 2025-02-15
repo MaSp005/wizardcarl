@@ -7,3 +7,5 @@ logo.*
 start.sh
 misuse.js
 files.json
+*.mp4
+*.gif
